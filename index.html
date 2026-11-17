@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Проект Workshop — калькулятор КП</title>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{ /* layout: plain-language summary on top; below, controls on the left drive every figure on the right */
+--bg:#f4f5f7;--card:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--mute:#898781;--line:#e1e0d9;--axis:#c3c2b7;--accent:#184f95;--soft:#e9f0fa;
+--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--warn:#fab219;--warnbg:#fff6dc;--good:#0ca30c;--bad:#d03b3b;
+--body:"Golos Text",system-ui,"Segoe UI",Arial,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0d0d0d;--card:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--line:#2c2c2a;--axis:#383835;--accent:#86b6ef;--soft:#16243a;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--warnbg:#2e2710;--bad:#e66767}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0d0d0d;--card:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--line:#2c2c2a;--axis:#383835;--accent:#86b6ef;--soft:#16243a;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--warnbg:#2e2710;--bad:#e66767}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+main{max-width:1240px;margin:0 auto;padding:26px 18px 60px;display:flex;flex-direction:column;gap:18px}
+h1{font-size:28px;line-height:1.15;margin:0;font-weight:700;text-wrap:balance}h2{font-size:18px;margin:0 0 6px;font-weight:600;text-wrap:balance}h3{font-size:14px;margin:0 0 6px;font-weight:600}
+.sub{color:var(--ink2);margin:6px 0 0;max-width:72ch}.note{color:var(--ink2);font-size:13px;margin:8px 0 0;max-width:78ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.lead{font-size:17px;line-height:1.55;max-width:75ch;margin:0}.lead b{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}.kpi.main{border-left:5px solid var(--accent)}
+.kpi span{color:var(--ink2);font-size:13px}.kpi b{display:block;font:600 28px/1.15 var(--mono);font-variant-numeric:tabular-nums}.kpi small{display:block;color:var(--mute);font-size:12px;margin-top:3px}
+.delta{font:500 12px var(--mono)}.delta.up{color:var(--bad)}.delta.down{color:var(--good)}
+.stack{display:flex;gap:2px;height:56px;margin-top:12px}.seg{min-width:0;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font:600 14px var(--mono);overflow:hidden}
+.seg.k4{color:#0b0b0b}.k1{background:var(--s1)}.k2{background:var(--s2)}.k3{background:var(--s3)}.k4{background:var(--s4)}.k5{background:var(--s5)}
+.seg:hover,.hb-f:hover,.cs:hover{filter:brightness(1.12)}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);font-weight:400}td{font-variant-numeric:tabular-nums}
+thead th{color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.04em}td:not(:first-child),thead th:not(:first-child){text-align:right;white-space:nowrap}
+td i.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px}tr.tt td{font-weight:600}
+.work{display:grid;grid-template-columns:350px 1fr;gap:18px;align-items:start}
+.panel{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.panel h2{display:flex;justify-content:space-between;align-items:center}
+details{border-top:1px solid var(--line);padding:8px 0}summary{cursor:pointer;font-weight:600;font-size:14px;padding:2px 0}summary:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.f{display:grid;grid-template-columns:1fr 96px;gap:8px;align-items:center;margin:7px 0;font-size:13.5px;color:var(--ink2)}
+.f input[type=number],.f select{width:100%;font:500 14px var(--mono);padding:5px 6px;border:1px solid var(--axis);border-radius:6px;background:var(--bg);color:var(--ink);text-align:right}
+.f select{text-align:left;font-family:var(--body)}.f.wide{grid-template-columns:1fr 150px}
+.rng{display:grid;grid-template-columns:1fr 62px;gap:8px;align-items:center;margin:4px 0 10px}.rng label{grid-column:1/-1;font-size:13.5px;color:var(--ink2)}
+.rng input[type=range]{width:100%;accent-color:var(--s1)}.rng output{font:600 15px var(--mono);text-align:right}
+.chk{display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-size:14px}.chk input{margin-top:3px;accent-color:var(--s1);width:16px;height:16px}
+button{font:500 13px var(--body);padding:6px 10px;border:1px solid var(--axis);border-radius:6px;background:var(--bg);color:var(--ink);cursor:pointer}button:hover{border-color:var(--accent)}
+.res{display:flex;flex-direction:column;gap:18px;min-width:0}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.hb{display:grid;grid-template-columns:minmax(130px,230px) 1fr auto;gap:10px;align-items:center;padding:4px 0}.hb-l{font-size:13.5px;color:var(--ink2)}
+.hb-t{height:16px;border-left:1px solid var(--axis)}.hb-f{height:100%;background:var(--s1);border-radius:0 4px 4px 0;min-width:1px}.hb-v{font:500 13.5px var(--mono);white-space:nowrap}.hb-v small{color:var(--mute);font-family:var(--body);margin-left:6px}
+.cols{display:flex;gap:14px;align-items:flex-end;height:210px;margin-top:10px;padding:0 6px}.col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;max-width:100px}
+.col-b{width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;border-bottom:1px solid var(--axis)}.cs{width:100%;border-radius:2px}.col-n{font:600 14px var(--mono);margin-bottom:3px}.col-m{font-size:13px;color:var(--ink2);padding-top:5px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;font-size:13px;color:var(--ink2)}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+.flag{background:var(--warnbg);border:1px solid var(--warn);border-radius:10px;padding:16px 20px}.flag ul,ul.plain{margin:6px 0 0;padding-left:20px}.flag li,ul.plain li{margin:4px 0;max-width:82ch}ul.plain{color:var(--ink2)}
+.three{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:10px}.who{border-top:4px solid var(--axis);padding-top:8px}.who.we{border-color:var(--s1)}.who.q{border-color:var(--warn)}.who ul{margin:0;padding-left:18px;color:var(--ink2);font-size:14px}
+.off{opacity:.45}#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--card);font-size:13px;padding:6px 9px;border-radius:6px;max-width:300px;display:none;z-index:9}
+@media (max-width:900px){.work{grid-template-columns:1fr}.panel{position:static;max-height:none}}
+@media (max-width:520px){.hb{grid-template-columns:1fr auto}.hb-l{grid-column:1/-1}h1{font-size:23px}}
+</style></head><body><main>
+<header><h1>Проект Workshop: сколько стоит пакет КИПиА и слаботочных систем</h1>
+<p class="sub">Запрос коммерческого предложения на субподряд в здании мастерской: 73 позиции, работы в апреле–июне 2028, наладка до конца августа 2028. Все суммы в млн ₸ без НДС. Цифры пересчитываются при изменении полей слева.</p></header>
+
+<section class="card"><h2>Коротко</h2><p class="lead" id="lead"></p></section>
+<section class="kpis" id="kpis"></section>
+
+<section class="card"><h2>Из чего состоит цена</h2><p class="note">Вся цена КП разложена на пять частей. Последняя часть — наша прибыль.</p>
+<div class="stack" id="pstack"></div><div class="tw" style="margin-top:10px"><table id="ptab"></table></div></section>
+
+<div class="work">
+<aside class="panel" aria-label="Параметры расчёта">
+<h2>Параметры <button id="reset" type="button">Сбросить</button></h2>
+<details open><summary>Маржа</summary>
+<div class="rng"><label for="Mm">На материалы</label><input type="range" id="Mm" min="0" max="40" step="1"><output id="Mm_o"></output></div>
+<div class="rng"><label for="Mw">На монтажные работы</label><input type="range" id="Mw" min="0" max="50" step="1"><output id="Mw_o"></output></div>
+<div class="rng"><label for="Mp">На наладку и испытания</label><input type="range" id="Mp" min="0" max="60" step="1"><output id="Mp_o"></output></div>
+<p class="note" id="mkNote"></p></details>
+<details open><summary>Что входит в КП</summary>
+<h3 style="margin-top:8px">Разделы</h3>
+<label class="chk"><input type="checkbox" id="secF">Слаботочные системы здания: пожарная сигнализация, СКС, оповещение, СКУД, охрана, видео</label>
+<label class="chk"><input type="checkbox" id="secI">КИПиА систем вентиляции</label>
+<h3 style="margin-top:10px">Виды работ</h3>
+<label class="chk"><input type="checkbox" id="tMat">Поставка материалов</label>
+<label class="chk"><input type="checkbox" id="tInst">Монтаж</label>
+<label class="chk"><input type="checkbox" id="tConn">Разделка и подключение кабеля</label>
+<label class="chk"><input type="checkbox" id="tPnr">Наладка, калибровка, проверка сигналов</label>
+<h3 style="margin-top:10px">Чего нет в ведомости заказчика</h3>
+<label class="chk"><input type="checkbox" id="trayOn">Кабельные трассы: лотки, трубы, коробки</label>
+<div class="f wide"><label for="blackMode">Чёрные работы</label><select id="blackMode"><option value="1">свои рабочие</option><option value="2">субподряд</option><option value="0">исключить</option></select></div>
+<label class="chk"><input type="checkbox" id="optOn">Материалы, по которым заказчик ещё не ответил</label></details>
+<details open><summary>Кто и как выполняет</summary>
+<div class="f wide"><label for="scen">Монтаж</label><select id="scen"><option value="1">свои силы</option><option value="2">субподряд</option></select></div>
+<div class="f wide"><label for="heightMode">Леса, краны, подъёмники</label><select id="heightMode"><option value="1">арендуем сами</option><option value="0">даёт генподрядчик</option></select></div>
+<div class="f"><label for="heightK">Надбавка к часам на высоте, %</label><input type="number" id="heightK" min="0" max="100" step="1"></div>
+<label class="chk"><input type="checkbox" id="scaleSite">Уменьшать расходы на площадку вместе с объёмом работ</label></details>
+<details><summary>Накладные, риски, рост цен</summary>
+<div class="f"><label for="OH">Накладные компании, %</label><input type="number" id="OH" min="0" max="50" step="1"></div>
+<div class="f"><label for="risk">Резерв на риски, %</label><input type="number" id="risk" min="0" max="30" step="1"></div>
+<div class="f"><label for="inflM">Рост цен материалов до 2028, %</label><input type="number" id="inflM" min="0" max="60" step="1"></div>
+<div class="f"><label for="inflL">Рост зарплат до 2028, %</label><input type="number" id="inflL" min="0" max="60" step="1"></div>
+<div class="f"><label for="deliv">Доставка и склад, % к материалам</label><input type="number" id="deliv" min="0" max="30" step="1"></div>
+<div class="f"><label for="prod">Простои и стеснённость, % к нормам</label><input type="number" id="prod" min="0" max="100" step="5"></div></details>
+<details><summary>Оклады и субподряд</summary>
+<div class="f"><label for="salM">Монтажник, тыс ₸ в месяц</label><input type="number" id="salM" min="0" step="10"></div>
+<div class="f"><label for="salP">Электромонтажник, тыс ₸</label><input type="number" id="salP" min="0" step="10"></div>
+<div class="f"><label for="salN">Наладчик КИПиА, тыс ₸</label><input type="number" id="salN" min="0" step="10"></div>
+<div class="f"><label for="salCh">Разнорабочий, тыс ₸</label><input type="number" id="salCh" min="0" step="10"></div>
+<div class="f"><label for="tax">Налоги с зарплаты, %</label><input type="number" id="tax" min="0" max="50" step="1"></div>
+<div class="f"><label for="subK">Субподрядчик дороже своих на, %</label><input type="number" id="subK" min="0" max="100" step="5"></div>
+<div class="f"><label for="subSite">Расходы на площадку при субподряде, %</label><input type="number" id="subSite" min="0" max="100" step="5"></div></details>
+<details><summary>Расходы на площадку, тыс ₸</summary><div id="siteF"></div></details>
+<details><summary>Что ещё учесть, тыс ₸</summary><p class="note">0 — статья не входит в цену. В скобках моя оценка.</p><div id="extraF"></div></details>
+<details><summary>Цены главных материалов, ₸ за единицу</summary><div id="matF"></div><p class="note">Цены 2026 года без НДС, оценка по открытым прайсам.</p></details>
+</aside>
+
+<div class="res">
+<section class="two">
+<div class="card"><h2>Цена по видам работ, млн ₸</h2><div id="byType"></div></div>
+<div class="card"><h2>Цена по разделам, млн ₸</h2><div id="bySec"></div><p class="note" id="optNote"></p></div>
+</section>
+<section class="two">
+<div class="card"><h2>Люди на площадке по месяцам 2028 года</h2><div class="cols" id="cols"></div><div class="legend" id="lg"></div><p class="note" id="staffNote"></p></div>
+<div class="card"><h2>Работа на высоте</h2><p class="lead" id="hLead" style="font-size:15px"></p><div id="hBars" style="margin-top:8px"></div>
+<p class="note">По правилам Казахстана это любая работа на высоте 1,3 м и более. Планов здания в запросе нет: принято, что офисная часть 3–4 м, производственный пролёт 8–10 м.</p></div>
+</section>
+<section class="card"><h2>Что ещё заложено и что остаётся риском</h2><p class="note">Статьи, которые в таких предложениях часто забывают. Суммы меняются слева в блоке «Что ещё учесть».</p><div class="tw"><table id="xtab"></table></div></section>
+<section class="card"><h2>Самые дорогие позиции, млн ₸</h2><div class="tw"><table id="top"></table></div></section>
+<section class="flag"><h2>На что смотреть перед подачей</h2><ul>
+<li><b>Траншей нет.</b> Весь кабель идёт внутри здания по лоткам и в трубах. Ввод кабеля снаружи и линии между зданиями делает заказчик.</li>
+<li><b>Трассы и строительные работы не выделены в ведомости,</b> но по техническому заданию они на субподрядчике. Здесь они разложены в цену метра кабеля. Их объём оценён без чертежей.</li>
+<li><b>Работа на высоте есть почти везде:</b> извещатели и громкоговорители на потолке, лотки под перекрытием, трассы по кровле. Высоту здания нужно подтвердить по архитектурным чертежам.</li>
+<li><b>Цены твёрдые до 2028 года.</b> Рост цен на материалы и зарплаты заложен, но медь и курс остаются риском.</li>
+<li><b>Все цены и нормы здесь — оценки.</b> Перед подачей их нужно заменить предложениями поставщиков.</li></ul></section>
+<section class="card"><h2>Кто что поставляет</h2><div class="three">
+<div class="who we"><h3>Мы</h3><ul><li>22 367 м кабеля: сигнальный, огнестойкий, бронированный, CAT6, телефонный, оптика</li><li>497 комплектов подключения приборов</li><li>137 коробок, кроссы, патч-корды, расходники</li><li>Лотки, трубы, заземление, маркировка</li></ul></div>
+<div class="who"><h3>Заказчик, мы только монтируем</h3><ul><li>5 шкафов, 203 прибора вентиляции</li><li>76 пожарных извещателей, 2 газоанализатора</li><li>61 громкоговоритель и сирена</li><li>45 устройств СКУД, 23 охранных датчика</li></ul></div>
+<div class="who q"><h3>Заказчик ещё не ответил</h3><ul><li>69 распределительных коробок</li><li>29 колонн с розетками</li><li>4 встраиваемые коробки</li></ul></div></div></section>
+</div></div>
+</main><div id="tip"></div>
+<script>
+const DATA={"rows":[{"n":"Монтаж напольного шкафа","u":"шт","q":1,"s":"3.f","t":"ДАВ","c":"М","cab":0,"K":0,"L":0,"M":15000,"N":16,"h":0.0},{"n":"Монтаж настенного шкафа","u":"шт","q":1,"s":"3.f","t":"ДАВ","c":"М","cab":0,"K":0,"L":0,"M":8000,"N":6,"h":0.0},{"n":"Кабель сигнальный 1–2,5 мм², 1 пара, общий экран, огнестойкий","u":"м","q":1706,"s":"3.f","t":"П+М","c":"М","cab":1,"K":420,"L":0.05,"M":0,"N":0.05,"h":0.7},{"n":"Кабель сигнальный 0,5–1,5 мм², 2–6 пар, общий экран, огнестойкий","u":"м","q":4935,"s":"3.f","t":"П+М","c":"М","cab":1,"K":900,"L":0.05,"M":0,"N":0.06,"h":0.7},{"n":"Кабель сигнальный 0,5–1,5 мм², 2–6 пар, бронированный, огнестойкий","u":"м","q":176,"s":"3.f","t":"П+М","c":"М","cab":1,"K":1900,"L":0.05,"M":0,"N":0.08,"h":0.7},{"n":"Кабель сигнальный 1–2,5 мм², 1 тройка, бронированный, огнестойкий","u":"м","q":20,"s":"3.f","t":"П+М","c":"М","cab":1,"K":1300,"L":0.05,"M":0,"N":0.08,"h":0.7},{"n":"Кабель сигнальный 0,5–1,5 мм², 8–12 троек, общий + индивид. экран, бронированный, огнестойкий","u":"м","q":70,"s":"3.f","t":"П+М","c":"М","cab":1,"K":7500,"L":0.05,"M":0,"N":0.12,"h":0.7},{"n":"Кабель телефонный 0,6–1 мм², 4–10 пар, общий экран, огнестойкий","u":"м","q":292,"s":"3.f","t":"П+М","c":"М","cab":1,"K":1400,"L":0.05,"M":0,"N":0.06,"h":0.7},{"n":"Кабель U/UTP CAT6 4×2×AWG23","u":"м","q":4818,"s":"3.f","t":"П+М","c":"М","cab":1,"K":430,"L":0.05,"M":0,"N":0.04,"h":0.7},{"n":"Разделка и подключение: 1 пара","u":"шт","q":92,"s":"3.f","t":"ПОДКЛ","c":"П","cab":0,"K":300,"L":0,"M":0,"N":0.5,"h":0.2},{"n":"Разделка и подключение: 2–6 пар","u":"шт","q":89,"s":"3.f","t":"ПОДКЛ","c":"П","cab":0,"K":700,"L":0,"M":0,"N":1.0,"h":0.2},{"n":"Разделка и подключение: 1 тройка","u":"шт","q":2,"s":"3.f","t":"ПОДКЛ","c":"П","cab":0,"K":350,"L":0,"M":0,"N":0.6,"h":0.2},{"n":"Разделка и подключение: телефонный 4–10 пар","u":"шт","q":4,"s":"3.f","t":"ПОДКЛ","c":"П","cab":0,"K":800,"L":0,"M":0,"N":1.5,"h":0.2},{"n":"Подключение кабеля CAT6","u":"шт","q":66,"s":"3.f","t":"ПОДКЛ","c":"П","cab":0,"K":1800,"L":0,"M":0,"N":0.3,"h":0.2},{"n":"Монтаж распред. коробки пожарной сигнализации, опоры до 5 кг","u":"шт","q":1,"s":"3.f","t":"УТОЧ","c":"М","cab":0,"K":25000,"L":0,"M":2500,"N":1.5,"h":0.5},{"n":"Монтаж извещателя пожарной сигнализации","u":"шт","q":76,"s":"3.f","t":"ДАВ","c":"М","cab":0,"K":0,"L":0,"M":2000,"N":1.0,"h":0.9},{"n":"Монтаж газоанализатора","u":"шт","q":2,"s":"3.f","t":"ДАВ","c":"М","cab":0,"K":0,"L":0,"M":5000,"N":2.5,"h":0.5},{"n":"Монтаж распред. коробки слаботочных систем","u":"шт","q":68,"s":"3.f","t":"УТОЧ","c":"М","cab":0,"K":20000,"L":0,"M":2500,"N":1.2,"h":0.5},{"n":"Монтаж громкоговорителя/маяка/сирены","u":"шт","q":61,"s":"3.f","t":"ДАВ","c":"М","cab":0,"K":0,"L":0,"M":2500,"N":1.2,"h":0.8},{"n":"Монтаж переговорного устройства","u":"шт","q":1,"s":"3.f","t":"ДАВ","c":"М","cab":0,"K":0,"L":0,"M":3000,"N":2.0,"h":0.0},{"n":"Монтаж акустического/телефонного колпака","u":"шт","q":1,"s":"3.f","t":"ДАВ","c":"М","cab":0,"K":0,"L":0,"M":4000,"N":3.0,"h":0.0},{"n":"Монтаж колонны с розетками RJ45 (до 4) и силовыми (до 4)","u":"шт","q":29,"s":"3.f","t":"УТОЧ","c":"М","cab":0,"K":180000,"L":0,"M":3000,"N":2.5,"h":0.0},{"n":"Монтаж встраиваемой коробки с розетками RJ45 (до 4)","u":"шт","q":4,"s":"3.f","t":"УТОЧ","c":"М","cab":0,"K":18000,"L":0,"M":1000,"N":1.0,"h":0.0},{"n":"Монтаж устройств СКУД","u":"шт","q":45,"s":"3.f","t":"ДАВ","c":"М","cab":0,"K":0,"L":0,"M":2000,"N":1.5,"h":0.3},{"n":"Монтаж извещателей охранной сигнализации","u":"шт","q":23,"s":"3.f","t":"ДАВ","c":"М","cab":0,"K":0,"L":0,"M":1500,"N":1.0,"h":0.7},{"n":"Комплект подключения КИП Ex-d, закрытая труба оцинк.","u":"шт","q":2,"s":"3.f","t":"П+М","c":"М","cab":0,"K":45000,"L":0.03,"M":0,"N":3.0,"h":0.6},{"n":"Комплект подключения КИП: закрытый канал/металлорукав","u":"шт","q":3,"s":"3.f","t":"П+М","c":"М","cab":0,"K":18000,"L":0.03,"M":0,"N":1.5,"h":0.6},{"n":"Комплект подключения КИП: открытый канал/труба","u":"шт","q":9,"s":"3.f","t":"П+М","c":"М","cab":0,"K":12000,"L":0.03,"M":0,"N":2.0,"h":0.6},{"n":"Комплект подключения КИП: лёгкая EMT открытая","u":"шт","q":112,"s":"3.f","t":"П+М","c":"М","cab":0,"K":8000,"L":0.03,"M":0,"N":1.2,"h":0.6},{"n":"Комплект подключения КИП: EMT закрытая","u":"шт","q":112,"s":"3.f","t":"П+М","c":"М","cab":0,"K":11000,"L":0.03,"M":0,"N":1.5,"h":0.6},{"n":"Комплект подключения КИП: ПВХ закрытая","u":"шт","q":56,"s":"3.f","t":"П+М","c":"М","cab":0,"K":5000,"L":0.03,"M":0,"N":1.0,"h":0.6},{"n":"Настройка линейного дымового извещателя","u":"шт","q":3,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":2.0,"h":1.0},{"n":"Калибровка точечного газоанализатора","u":"шт","q":2,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":2.0,"h":0.5},{"n":"Проверка громкоговорителя/сирены","u":"шт","q":39,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.3,"h":0.6},{"n":"Настройка камеры видеонаблюдения","u":"шт","q":31,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":1.0,"h":0.8},{"n":"Настройка устройства СКУД","u":"шт","q":48,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.5,"h":0.2},{"n":"Настройка устройства охранной сигнализации","u":"шт","q":13,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.4,"h":0.5},{"n":"Проверка адресного сигнала ввода/вывода","u":"шт","q":72,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.25,"h":0.1},{"n":"Проверка дискретного сигнала","u":"шт","q":4,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.25,"h":0.1},{"n":"Проверка аналогового сигнала","u":"шт","q":2,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.4,"h":0.1},{"n":"Проверка сигнала системы оповещения/интеркома","u":"шт","q":62,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.25,"h":0.1},{"n":"Тестирование линии СКС","u":"шт","q":66,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.25,"h":0.1},{"n":"Проверка телефонной линии","u":"шт","q":12,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.25,"h":0.1},{"n":"Проверка сигнала видеонаблюдения","u":"шт","q":31,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.3,"h":0.1},{"n":"Проверка сигнала СКУД","u":"шт","q":48,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.25,"h":0.1},{"n":"Проверка сигнала охранной сигнализации","u":"шт","q":23,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.25,"h":0.1},{"n":"Проверка сигнала по последовательному протоколу","u":"шт","q":1,"s":"3.f","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.3,"h":0.1},{"n":"Монтаж напольного шкафа","u":"шт","q":3,"s":"3.i","t":"ДАВ","c":"М","cab":0,"K":0,"L":0,"M":15000,"N":16,"h":0.0},{"n":"Кросс оптический 19\" до 12 портов","u":"шт","q":1,"s":"3.i","t":"П+М","c":"М","cab":0,"K":45000,"L":0,"M":0,"N":3.0,"h":0.0},{"n":"Кросс/распред. коробка MDF/IDF до 50 пар","u":"шт","q":1,"s":"3.i","t":"П+М","c":"М","cab":0,"K":60000,"L":0,"M":0,"N":4.0,"h":0.0},{"n":"Патч-корд CAT6 до 3 м","u":"шт","q":2,"s":"3.i","t":"П+М","c":"М","cab":0,"K":2500,"L":0,"M":0,"N":0.1,"h":0.0},{"n":"Кабель сигнальный 1–2,5 мм², 1 пара, общий экран","u":"м","q":3000,"s":"3.i","t":"П+М","c":"М","cab":1,"K":400,"L":0.05,"M":0,"N":0.05,"h":0.7},{"n":"Кабель сигнальный 0,5–1,5 мм², 2–6 пар, общий экран, огнестойкий","u":"м","q":2500,"s":"3.i","t":"П+М","c":"М","cab":1,"K":900,"L":0.05,"M":0,"N":0.06,"h":0.7},{"n":"Кабель сигнальный 0,5–1,5 мм², 2–6 пар, общий экран","u":"м","q":4000,"s":"3.i","t":"П+М","c":"М","cab":1,"K":750,"L":0.05,"M":0,"N":0.06,"h":0.7},{"n":"Кабель сигнальный 0,5–1,5 мм², 8–12 пар, общий экран","u":"м","q":100,"s":"3.i","t":"П+М","c":"М","cab":1,"K":1900,"L":0.05,"M":0,"N":0.09,"h":0.7},{"n":"Кабель сигнальный 0,5–1,5 мм², 16–24 пар, общий экран","u":"м","q":550,"s":"3.i","t":"П+М","c":"М","cab":1,"K":3600,"L":0.05,"M":0,"N":0.12,"h":0.7},{"n":"Кабель оптический 6–8 волокон","u":"м","q":200,"s":"3.i","t":"П+М","c":"М","cab":1,"K":900,"L":0.05,"M":0,"N":0.06,"h":0.7},{"n":"Разделка и подключение: 1 пара","u":"шт","q":177,"s":"3.i","t":"ПОДКЛ","c":"П","cab":0,"K":300,"L":0,"M":0,"N":0.5,"h":0.2},{"n":"Разделка и подключение: 2–6 пар","u":"шт","q":193,"s":"3.i","t":"ПОДКЛ","c":"П","cab":0,"K":700,"L":0,"M":0,"N":1.0,"h":0.2},{"n":"Разделка и подключение: 16–24 пар, общий экран","u":"шт","q":5,"s":"3.i","t":"ПОДКЛ","c":"П","cab":0,"K":3000,"L":0,"M":0,"N":4.0,"h":0.2},{"n":"Разделка и подключение: 16–24 пар, общий + индивид. экран","u":"шт","q":6,"s":"3.i","t":"ПОДКЛ","c":"П","cab":0,"K":4000,"L":0,"M":0,"N":5.0,"h":0.2},{"n":"Разварка/подключение ВОК 6–8 волокон","u":"шт","q":6,"s":"3.i","t":"ПОДКЛ","c":"П","cab":0,"K":12000,"L":0,"M":0,"N":4.0,"h":0.2},{"n":"Коробка распред. КИП малая (оцинк.)","u":"шт","q":101,"s":"3.i","t":"П+М","c":"М","cab":0,"K":35000,"L":0,"M":0,"N":1.0,"h":0.5},{"n":"Коробка распред. КИП средняя","u":"шт","q":1,"s":"3.i","t":"П+М","c":"М","cab":0,"K":60000,"L":0,"M":0,"N":1.5,"h":0.5},{"n":"Коробка распред. КИП большая","u":"шт","q":35,"s":"3.i","t":"П+М","c":"М","cab":0,"K":110000,"L":0,"M":0,"N":2.5,"h":0.5},{"n":"Монтаж прибора КИП/полевого устройства, опоры до 5 кг","u":"шт","q":203,"s":"3.i","t":"ДАВ","c":"М","cab":0,"K":0,"L":0,"M":3000,"N":1.5,"h":0.6},{"n":"Комплект подключения КИП Ex-d, закрытая труба оцинк.","u":"шт","q":203,"s":"3.i","t":"П+М","c":"М","cab":0,"K":45000,"L":0.03,"M":0,"N":3.0,"h":0.6},{"n":"Калибровка датчиков температуры/влажности/давления/уровня, концевиков","u":"шт","q":221,"s":"3.i","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.75,"h":0.5},{"n":"Калибровка преобразователей","u":"шт","q":46,"s":"3.i","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":1.5,"h":0.5},{"n":"Калибровка привода клапана/заслонки","u":"шт","q":84,"s":"3.i","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":1.0,"h":0.6},{"n":"Проверка сигнала по последовательному протоколу","u":"шт","q":372,"s":"3.i","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.3,"h":0.1},{"n":"Проверка дискретного сигнала","u":"шт","q":627,"s":"3.i","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.2,"h":0.1},{"n":"Проверка аналогового сигнала","u":"шт","q":87,"s":"3.i","t":"ПНР","c":"Н","cab":0,"K":0,"L":0,"M":0,"N":0.4,"h":0.1}],"tray":[{"n":"Лоток перфорированный HDG 100×50 с крышкой","u":"м","q":400,"p":4500,"h":0.35},{"n":"Лоток перфорированный HDG 200×50 с крышкой","u":"м","q":200,"p":6500,"h":0.45},{"n":"Подвесы, консоли, крепёж лотков HDG","u":"компл","q":300,"p":3500,"h":0.4},{"n":"Труба EMT / оцинкованная d20–25 (участки сверх комплектов hook-up)","u":"м","q":1200,"p":1400,"h":0.25},{"n":"Труба жёсткая ПВХ безгалогенная d20–25","u":"м","q":600,"p":450,"h":0.15},{"n":"Протяжные коробки","u":"шт","q":80,"p":6000,"h":0.8},{"n":"Функциональное заземление: шины, провод нг(С)-HF, заземление лотков и экранов","u":"компл","q":1,"p":600000,"h":80},{"n":"Бирки и маркировка кабелей, коробок, приборов","u":"компл","q":1,"p":350000,"h":60}],"black":[{"n":"Сверление проходок в стенах и перегородках d до 50 мм","u":"шт","q":150,"p":1500,"h":0.8},{"n":"Проходки в перекрытиях и кровле с гильзой","u":"шт","q":20,"p":8000,"h":2.0},{"n":"Штробление стен под скрытую прокладку","u":"м","q":200,"p":300,"h":0.5},{"n":"Закладные ПВХ-трубы и коробки в штробах","u":"м","q":200,"p":500,"h":0.2},{"n":"Заделка штроб и отверстий раствором","u":"м","q":200,"p":400,"h":0.25},{"n":"Огнезащитная заделка проходок (мастика, пена, муфты)","u":"шт","q":170,"p":9000,"h":0.6},{"n":"Опорные металлоконструкции HDG: изготовление и монтаж без сварки на площадке","u":"кг","q":500,"p":1400,"h":0.12},{"n":"Получение на складе заказчика, погрузка, доставка к месту монтажа, возврат излишков","u":"компл","q":1,"p":0,"h":250},{"n":"Уборка рабочих мест, вывоз мусора","u":"мес","q":3,"p":50000,"h":60}],"site":[{"n":"Руководитель работ (с налогами)","v":6000000},{"n":"Мастер / прораб","v":2700000},{"n":"Инженер ПТО / QC: исполнительная документация, ITP, as-built","v":3400000},{"n":"Инженер по ТБ (HSE)","v":3000000},{"n":"Кладовщик / снабжение","v":900000.0},{"n":"Подвоз персонала город – площадка","v":4800000},{"n":"Аренда калибраторов давления/температуры/тока, HART-коммуникатор","v":1200000},{"n":"Аренда сертификационного тестера СКС (Cat6)","v":500000},{"n":"Аренда сварочного аппарата ВОК и рефлектометра","v":300000.0},{"n":"Поверочные газовые смеси, комплект для газоанализаторов","v":250000},{"n":"Мегаомметры, мультиметры, тестеры","v":200000},{"n":"Инструмент и оснастка: перфораторы, алмазное сверление, трубогибы, кримперы","v":2500000},{"n":"СИЗ и спецодежда","v":2160000},{"n":"Пропуска, медосмотры, обучение и допуски","v":1440000},{"n":"Мобилизация, бытовое помещение, офис на площадке","v":1500000},{"n":"Печать и оформление исполнительной документации","v":500000},{"n":"Страхование (ГПО работодателя, СМР)","v":800000}],"height":[{"n":"Вышки-туры передвижные до 6 м, аренда","v":1440000,"a":0},{"n":"Ножничный подъёмник электрический 8–10 м, аренда","v":4500000.0,"a":0},{"n":"Доставка и вывоз подъёмников","v":400000,"a":0},{"n":"Обучение операторов подъёмников","v":180000,"a":0},{"n":"Леса рамные для кровли, наружных стен и зон без проезда: аренда, монтаж, демонтаж, м²","v":2100000,"a":0},{"n":"Приёмка лесов, бирки допуска, ответственный за леса","v":300000,"a":0},{"n":"Автокран или манипулятор: разгрузка и подача шкафов, барабанов, лотков, машино-смен","v":1080000,"a":0},{"n":"Вилочный или телескопический погрузчик на площадке","v":900000,"a":0},{"n":"Такелаж: тележки, стропы, домкраты для шкафов","v":250000,"a":1},{"n":"Обучение и удостоверения стропальщиков","v":120000,"a":1},{"n":"Страховочные привязи, стропы, блокирующие устройства, каски","v":840000,"a":1},{"n":"Обучение безопасным методам работ на высоте и проверка знаний","v":490000,"a":1},{"n":"Анкерные линии, ограждения зон, знаки","v":300000,"a":1},{"n":"ППР на высоте, наряды-допуски, план спасения","v":250000,"a":1}],"extra":[{"n":"Временное электроснабжение рабочих мест: щитки, удлинители, освещение, понижающие трансформаторы","v":600000,"a":1},{"n":"Склад или контейнер на площадке, охрана материалов","v":750000,"a":1},{"n":"Измерения сопротивления изоляции и цепей, протоколы аттестованной электролаборатории","v":1200000,"a":1},{"n":"Сертификаты калибровки арендуемых эталонов","v":300000,"a":1},{"n":"Устранение замечаний при сдаче (punch list)","v":1200000,"a":1},{"n":"Гарантийный период: выезды по замечаниям","v":1500000,"a":1},{"n":"Перевод и оформление документации RU/EN в формате заказчика","v":600000,"a":1},{"n":"Предквалификация, аккредитация на площадке, разрешения","v":400000,"a":1},{"n":"Вывоз и утилизация отходов по договору","v":300000,"a":1},{"n":"Связь, рации, ноутбуки, принтер на площадке","v":400000,"a":1},{"n":"Вода, навесы, аптечки, огнетушители, первичные средства пожаротушения","v":350000,"a":1},{"n":"Запасные части на период пуска (commissioning spares) по нашим материалам","v":500000,"a":1},{"n":"Финансирование кассового разрыва: оплата по факту с отсрочкой","v":3500000,"a":0},{"n":"Банковские гарантии: возврат аванса, исполнение договора","v":1500000,"a":0},{"n":"Гарантийное удержание 5–10% на 12–24 месяца: стоимость денег","v":2000000,"a":0},{"n":"Сверхурочные и вторая смена при сжатии графика","v":2000000,"a":0},{"n":"Простои из-за поздней передачи давальческого оборудования и фронта работ","v":0,"a":0},{"n":"Штрафы за срыв сроков","v":0,"a":0},{"n":"Курсовая разница по импортным материалам","v":0,"a":0},{"n":"Программирование и конфигурация панелей и контроллеров","v":0,"a":0}]};
+const DEF={Mm:15,Mw:25,Mp:35,secF:1,secI:1,tMat:1,tInst:1,tConn:1,tPnr:1,trayOn:1,blackMode:1,optOn:0,scen:1,heightMode:1,heightK:15,scaleSite:0,
+OH:10,risk:5,inflM:12,inflL:15,deliv:6,prod:20,salM:600,salP:700,salN:950,salCh:380,tax:21,subK:25,subSite:65,site:DATA.site.map(x=>Math.round(x.v/1000)),extra:DATA.extra.map(x=>x.a?Math.round(x.v/1000):0),mat:{}};
+const HM=200,EXTRA=400,TRAYH=.8,BLACKH=.4,SUBBLACK=1.25,DIST={M:[.3,.4,.3,0,0],P:[.1,.35,.45,.1,0],N:[0,.05,.25,.4,.3],Ch:[.45,.35,.2,0,0]},ITR=[4,5,5,3,2],MON=['Апр','Май','Июн','Июл','Авг'];
+const KEY='workshop-kp-v2';let P=JSON.parse(JSON.stringify(DEF));
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s)P=Object.assign(P,s)}catch(e){}
+const $=id=>document.getElementById(id),mln=v=>(v/1e6).toLocaleString('ru-RU',{minimumFractionDigits:1,maximumFractionDigits:1}),num=v=>Math.round(v).toLocaleString('ru-RU'),pc=v=>(v*100).toLocaleString('ru-RU',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function calc(p,full){
+ const on=k=>full?1:+p[k],KO=(1+p.OH/100)*(1+p.risk/100),iM=(1+p.deliv/100)*(1+p.inflM/100),prod=1+p.prod/100,hK=p.heightK/100;
+ const own=s=>s*1000*(1+p.tax/100)/HM+EXTRA,sub=p.scen==2?1+p.subK/100:1,eff=s=>own(s)*prod*(1+p.inflL/100);
+ const R={M:eff(p.salM)*sub,P:eff(p.salP)*sub,N:eff(p.salN),Ch:eff(p.salCh)},cat={'М':'M','П':'P','Н':'N'};
+ const trayOn=full?1:+p.trayOn,black=full?1:+p.blackMode,opt=+p.optOn;
+ const rows=DATA.rows.map((r,i)=>{const sec=r.s=='3.f'?on('secF'):on('secI');const c=cat[r.c];
+  const lab=sec&&(c=='N'?on('tPnr'):r.t=='ПОДКЛ'?on('tConn'):on('tInst')),mat=sec&&(r.t=='ПОДКЛ'?on('tConn'):on('tMat'));
+  const K=p.mat[i]!=null?+p.mat[i]:r.K;
+  return {r,i,c,lab,mat,O:mat?K*(1+r.L)*iM*(r.t=='УТОЧ'?opt:1):0,optP:r.t=='УТОЧ'&&sec?K*iM*KO/(1-p.Mm/100)*r.q:0,Q:lab?r.N*R[c]*(1+r.h*hK):0,S:lab?r.M*iM:0,hrs:lab?r.q*r.N*prod*(1+r.h*hK):0,hh:lab?r.q*r.N*prod*r.h*(1+hK):0}});
+ const cabFull=DATA.rows.reduce((a,r)=>a+r.cab*r.q,0),cabM=rows.reduce((a,x)=>a+(x.lab?x.r.cab*x.r.q:0),0),cf=cabM/cabFull;
+ const tMat=DATA.tray.reduce((a,x)=>a+x.q*x.p,0)*iM*cf*trayOn,tH=DATA.tray.reduce((a,x)=>a+x.q*x.h,0)*cf*trayOn,tHF=1+TRAYH*hK;
+ const bMat=DATA.black.reduce((a,x)=>a+x.q*x.p,0)*iM*cf,bH=DATA.black.reduce((a,x)=>a+x.q*x.h,0)*cf,bHF=1+BLACKH*hK;
+ const tLab=tH*tHF*R.M,bLab=black==1?bH*bHF*R.Ch:0,bOth=black==1?bMat:black==2?(bMat+bH*bHF*R.Ch)*SUBBLACK:0;
+ const rowLab=rows.reduce((a,x)=>a+x.r.q*x.Q,0),labDirect=rowLab+tLab+bLab;
+ const hCost=DATA.height.reduce((a,x)=>a+x.v*(x.a?1:+p.heightMode),0);
+ const xCost=p.extra.reduce((a,v)=>a+v*1000,0);let site=(p.site.reduce((a,v)=>a+v*1000,0)+hCost+xCost)*(1+p.inflL/100)*(p.scen==2?p.subSite/100:1);
+ if(!full&&+p.scaleSite){const f=calc(p,true);site*=f.labDirect?labDirect/f.labDirect:0}
+ if(full)return {labDirect};
+ const sp=labDirect?site/labDirect:0,pm=cabM?1/cabM:0;
+ let pMat=0,pWork=0,pPnr=0,cMat=0,cWork=0,cPnr=0,sec={'3.f':0,'3.i':0},matDirect=tMat,other=bOth;
+ rows.forEach(x=>{const cab=x.lab?x.r.cab:0;
+  const mc=(x.O+cab*tMat*pm)*KO,wc=((x.Q+cab*(tLab+bLab)*pm)*(1+sp)+x.S+cab*bOth*pm)*KO;
+  const mp=mc/(1-p.Mm/100),wp=wc/(1-(x.c=='N'?p.Mp:p.Mw)/100);x.price=(mp+wp)*x.r.q;
+  pMat+=mp*x.r.q;cMat+=mc*x.r.q;if(x.c=='N'){pPnr+=wp*x.r.q;cPnr+=wc*x.r.q}else{pWork+=wp*x.r.q;cWork+=wc*x.r.q}
+  sec[x.r.s]+=x.price;matDirect+=x.O*x.r.q;other+=x.S*x.r.q});
+ const price=pMat+pWork+pPnr,cost=cMat+cWork+cPnr,direct=matDirect+other+labDirect+site;
+ const H={M:0,P:0,N:0,Ch:black==1?bH*bHF*prod:0};rows.forEach(x=>H[x.c]+=x.hrs);H.M+=tH*tHF*prod;
+ const g=f=>rows.filter(f).reduce((a,x)=>a+x.hh,0),n=x=>x.r.n;
+ const hg=[['Прокладка кабеля',g(x=>x.r.cab)],['Монтаж лотков и труб',tH*TRAYH*prod*(1+hK)],['Приборы вентиляции, коробки, подключение',g(x=>!x.r.cab&&x.c=='M'&&x.r.s=='3.i')],
+  ['Извещатели, оповещатели, датчики',g(x=>!x.r.cab&&x.c=='M'&&x.r.s=='3.f')],['Чёрные работы',black==1?bH*BLACKH*prod*(1+hK):0],['Наладка и проверка',g(x=>x.c=='N')],['Разделка кабеля',g(x=>x.c=='P')]];
+ return {price,cost,profit:price-cost,pMat,pWork,pPnr,cMat,cWork,cPnr,sec,matDirect:matDirect+other,labDirect,site,ohr:direct*(KO-1),rows,H,hg,hCost:hCost*(1+p.inflL/100),xCost:xCost*(1+p.inflL/100),
+  hh:hg.reduce((a,x)=>a+x[1],0),hours:H.M+H.P+H.N+H.Ch,opt:opt?0:rows.reduce((a,x)=>a+x.optP,0),cabM};
+}
+const BASE=calc(DEF);
+function bars(el,items,max){max=max||Math.max(1,...items.map(x=>x[1]));$(el).innerHTML=items.map(([l,v,ex])=>`<div class="hb${v?'':' off'}"><div class="hb-l">${esc(l)}${ex&&ex.s?`<br><small style="color:var(--mute)">${ex.s}</small>`:''}</div><div class="hb-t"><div class="hb-f" style="width:${(v/max*100).toFixed(1)}%" data-tip="${esc(l)}: ${ex&&ex.tip||mln(v)+' млн ₸'}"></div></div><div class="hb-v">${ex&&ex.v||mln(v)}</div></div>`).join('')}
+function dlt(v,b,unit){const d=v-b;if(Math.abs(d)<(unit?0.0005:5e4))return '';const s=d>0?'+':'−';return `<span class="delta ${d>0?'up':'down'}">${s}${unit?pc(Math.abs(d)):mln(Math.abs(d))} к базовому</span>`}
+const mk=m=>m>=100?'∞':(m/(100-m)*100).toLocaleString('ru-RU',{maximumFractionDigits:1})+'%';
+function render(){
+ $('mkNote').innerHTML=`Маржа — доля прибыли в цене. В пересчёте на наценку к затратам: материалы <b>${mk(P.Mm)}</b>, монтаж <b>${mk(P.Mw)}</b>, наладка <b>${mk(P.Mp)}</b>.`;
+ const c=calc(P),m=c.price?c.profit/c.price:0;
+ $('lead').innerHTML=c.price?`При выбранных условиях мы просим <b>${mln(c.price)} млн ₸</b>. Нам это обойдётся в <b>${mln(c.cost)} млн ₸</b>, заработаем <b>${mln(c.profit)} млн ₸</b>. С каждых 100 ₸ цены ${num(m*100)} ₸ остаётся прибылью. На площадке в пик нужно <b>${peak(c)} человек</b>, всего ${num(c.hours)} человеко-часов, из них ${c.hours?num(c.hh/c.hours*100):0}% на высоте.`:'Все разделы выключены. Включите хотя бы один раздел и один вид работ.';
+ $('kpis').innerHTML=[['Цена КП',mln(c.price),'млн ₸ без НДС '+dlt(c.price,BASE.price),1],['Наши затраты',mln(c.cost),'млн ₸ '+dlt(c.cost,BASE.cost)],['Прибыль',mln(c.profit),'млн ₸'],['Маржа',pc(m),'наценка '+pc(c.cost?c.profit/c.cost:0)]]
+  .map(([a,b,s,mn])=>`<div class="kpi${mn?' main':''}"><span>${a}</span><b>${b}</b><small>${s}</small></div>`).join('');
+ const parts=[['Материалы',c.matDirect,'Кабель, коробки, комплекты подключения, трассы, расходники'],['Зарплата рабочих и наладчиков',c.labDirect,'Монтаж, подключение, наладка, чёрные работы'],['Расходы на площадку',c.site,'Инженеры, подвоз, приборы, инструмент, леса, краны, подъёмники, спецодежда'],['Накладные и резерв на риски',c.ohr,'Офис компании и запас на непредвиденное'],['Прибыль',c.profit,'То, что остаётся нам']];
+ $('pstack').innerHTML=parts.map(([n,v],i)=>v>0?`<div class="seg k${i+1}" style="flex:${v}" data-tip="${n}: ${mln(v)} млн ₸">${c.price&&v/c.price>.07?num(v/c.price*100)+'%':''}</div>`:'').join('');
+ $('ptab').innerHTML='<thead><tr><th>Часть цены</th><th>млн ₸</th><th>Доля</th></tr></thead><tbody>'+parts.map(([n,v,d],i)=>`<tr><td><i class="sw k${i+1}"></i>${n}<br><small style="color:var(--mute);margin-left:18px">${d}</small></td><td>${mln(v)}</td><td>${c.price?pc(v/c.price):'—'}</td></tr>`).join('')+`<tr class="tt"><td>Цена КП</td><td>${mln(c.price)}</td><td>100%</td></tr></tbody>`;
+ const mx=Math.max(1,c.pMat,c.pWork,c.pPnr);
+ bars('byType',[['Материалы',c.pMat,{s:'маржа '+P.Mm+'%, наценка '+mk(P.Mm)}],['Монтаж, подключение, трассы',c.pWork,{s:'маржа '+P.Mw+'%, наценка '+mk(P.Mw)}],['Наладка и испытания',c.pPnr,{s:'маржа '+P.Mp+'%, наценка '+mk(P.Mp)}]],mx);
+ bars('bySec',[['Слаботочные системы здания',c.sec['3.f']],['КИПиА систем вентиляции',c.sec['3.i']]]);
+ $('optNote').textContent=c.opt?`Отдельно, сверх этой суммы: ${mln(c.opt)} млн ₸ за материалы, по которым заказчик ещё не ответил.`:'';
+ const st=[['Монтажники','M'],['Электромонтажники','P'],['Наладчики','N'],['Разнорабочие','Ch']].map(([n,k])=>[n,DIST[k].map(d=>Math.ceil(c.H[k]*d/HM-1e-9))]);st.push(['Инженеры и мастера',c.hours?ITR:[0,0,0,0,0]]);
+ const tot=MON.map((_,j)=>st.reduce((a,x)=>a+x[1][j],0)),mxs=Math.max(1,...tot);
+ $('cols').innerHTML=MON.map((mn,j)=>`<div class="col"><div class="col-n">${tot[j]}</div><div class="col-b">${st.map(([n,v],i)=>v[j]?`<div class="cs k${i+1}" style="height:${v[j]/mxs*100}%" data-tip="${mn}: ${n} — ${v[j]} чел."></div>`:'').reverse().join('')}</div><div class="col-m">${mn}</div></div>`).join('');
+ $('lg').innerHTML=st.map(([n,v],i)=>`<span><i class="k${i+1}"></i>${n}: до ${Math.max(...v)}</span>`).join('');
+ $('staffNote').textContent=`Пик ${Math.max(...tot)} человек. Персонал местный, ежедневный подвоз.`;
+ $('hLead').innerHTML=`На высоте <b>${num(c.hh)}</b> из ${num(c.hours)} человеко-часов (${c.hours?num(c.hh/c.hours*100):0}%). Леса, вышки, подъёмники, кран, страховка и обучение: <b>${mln(c.hCost)} млн ₸</b>.`;
+ bars('hBars',c.hg.map(([l,v])=>[l,v,{v:num(v)+' ч',tip:num(v)+' чел-ч на высоте'}]));
+ const top=c.rows.filter(x=>x.price>0).sort((a,b)=>b.price-a.price).slice(0,8);
+ $('top').innerHTML='<thead><tr><th>Позиция</th><th>Объём</th><th>Сумма</th><th>Доля</th></tr></thead><tbody>'+top.map(x=>`<tr><td>${esc(x.r.n)}</td><td>${num(x.r.q)} ${x.r.u}</td><td>${mln(x.price)}</td><td>${pc(x.price/c.price)}</td></tr>`).join('')+'</tbody>';
+ $('xtab').innerHTML='<thead><tr><th>Статья</th><th>Оценка, тыс ₸</th><th>В цене, тыс ₸</th></tr></thead><tbody>'+DATA.extra.map((x,i)=>`<tr${P.extra[i]?'':' class="off"'}><td>${esc(x.n)}</td><td>${x.v?num(x.v/1000):'оговорка'}</td><td>${P.extra[i]?num(P.extra[i]):'не входит'}</td></tr>`).join('')+`<tr class="tt"><td>Итого в цене, с ростом цен до 2028</td><td></td><td>${num(c.xCost/1000)}</td></tr></tbody>`;
+ try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}
+}
+function peak(c){return Math.max(...MON.map((_,j)=>['M','P','N','Ch'].reduce((a,k)=>a+Math.ceil(c.H[k]*DIST[k][j]/HM-1e-9),0)+(c.hours?ITR[j]:0)))}
+const CHK=['secF','secI','tMat','tInst','tConn','tPnr','trayOn','optOn','scaleSite'],SEL=['blackMode','scen','heightMode'],RNG=['Mm','Mw','Mp'],NUMS=['heightK','OH','risk','inflM','inflL','deliv','prod','salM','salP','salN','salCh','tax','subK','subSite'];
+const TOPM=DATA.rows.map((r,i)=>[i,r.K*r.q]).filter(x=>x[1]>0&&DATA.rows[x[0]].t!='ПОДКЛ').sort((a,b)=>b[1]-a[1]).slice(0,10).map(x=>x[0]);
+function build(){
+ $('siteF').innerHTML=DATA.site.map((x,i)=>`<div class="f"><label for="site${i}">${esc(x.n)}</label><input type="number" id="site${i}" min="0" step="50"></div>`).join('');
+ $('extraF').innerHTML=DATA.extra.map((x,i)=>`<div class="f"><label for="extra${i}">${esc(x.n)}${x.v?' ('+num(x.v/1000)+')':''}</label><input type="number" id="extra${i}" min="0" step="50"></div>`).join('');
+ $('matF').innerHTML=TOPM.map(i=>`<div class="f"><label for="mat${i}">${esc(DATA.rows[i].n)} (${num(DATA.rows[i].q)} ${DATA.rows[i].u}${DATA.rows[i].s=='3.i'?', вентиляция':''})</label><input type="number" id="mat${i}" min="0" step="10"></div>`).join('');
+ document.querySelector('.panel').addEventListener('input',e=>{const t=e.target,id=t.id;if(!id)return;
+  if(CHK.includes(id))P[id]=t.checked?1:0;else if(SEL.includes(id))P[id]=+t.value;else if(id.startsWith('site'))P.site[+id.slice(4)]=+t.value||0;else if(id.startsWith('extra'))P.extra[+id.slice(5)]=+t.value||0;else if(id.startsWith('mat'))P.mat[+id.slice(3)]=+t.value||0;else P[id]=+t.value||0;
+  if(RNG.includes(id))$(id+'_o').textContent=t.value+'%';render()});
+ $('reset').onclick=()=>{P=JSON.parse(JSON.stringify(DEF));fill();render()};
+ const tip=$('tip');document.addEventListener('mousemove',e=>{const t=e.target.closest('[data-tip]');if(!t){tip.style.display='none';return}tip.textContent=t.dataset.tip;tip.style.display='block';tip.style.left=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8)+'px';tip.style.top=(e.clientY+16)+'px'});
+}
+function fill(){CHK.forEach(k=>$(k).checked=!!P[k]);SEL.forEach(k=>$(k).value=P[k]);RNG.forEach(k=>{$(k).value=P[k];$(k+'_o').textContent=P[k]+'%'});NUMS.forEach(k=>$(k).value=P[k]);
+ DATA.site.forEach((x,i)=>$('site'+i).value=P.site[i]);DATA.extra.forEach((x,i)=>$('extra'+i).value=P.extra[i]);TOPM.forEach(i=>$('mat'+i).value=P.mat[i]!=null?P.mat[i]:DATA.rows[i].K)}
+build();fill();render();
+</script></body></html>
